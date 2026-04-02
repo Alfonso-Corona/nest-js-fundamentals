@@ -5,6 +5,8 @@ import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
 import { IUserResponse } from './types/userResponse.interface';
 import jwt from 'jsonwebtoken';
+import { LoginDto } from './dto/loginUser.dto';
+import { compare } from 'bcrypt';
 
 const { sign } = jwt;
 @Injectable()
@@ -34,6 +36,25 @@ export class UserService {
 
     const savedUser = await this.userRepository.save(newUser);
     return this.generateUserResponse(savedUser);
+  }
+
+  async loginUser(loginUserDto: LoginDto): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({
+      where: { email: loginUserDto.email },
+    });
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    const matchPassword = await compare(loginUserDto.password, user.password);
+
+    if (!matchPassword) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    delete user.password;
+
+    return user;
   }
 
   generateToken(user: UserEntity): string {
