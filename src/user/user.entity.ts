@@ -10,22 +10,22 @@ import * as bcrypt from 'bcrypt';
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('increment')
-  id: number;
+  id!: number;
 
   @Column()
-  username: string;
+  username!: string;
 
   @Column()
-  email: string;
+  email!: string;
 
   @Column({ default: '' })
-  bio: string;
+  bio!: string;
 
   @Column({ default: '' })
-  image: string;
+  image!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @BeforeInsert()
   @BeforeUpdate()
