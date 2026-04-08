@@ -24,7 +24,6 @@ export class AuthMiddleware {
       next();
     } catch (err) {
       req.user = new UserEntity();
-      console.log(err);
       next();
     }
   }
