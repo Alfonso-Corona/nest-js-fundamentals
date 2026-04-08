@@ -57,6 +57,17 @@ export class UserService {
     return user;
   }
 
+  async findById(id: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new HttpException(
+        `User with ID ${id} was not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return user;
+  }
+
   generateToken(user: UserEntity): string {
     return sign(
       {
@@ -64,11 +75,14 @@ export class UserService {
         username: user.username,
         email: user.email,
       },
-      process.env.JTW_SECRET,
+      process.env.JWT_SECRET,
     );
   }
 
   generateUserResponse(user: UserEntity): IUserResponse {
+    if (!user.id) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
     return {
       user: {
         ...user,
@@ -77,3 +91,5 @@ export class UserService {
     };
   }
 }
+
+//2:15:56
