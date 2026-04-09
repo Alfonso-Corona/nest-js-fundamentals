@@ -80,9 +80,6 @@ export class UserService {
   }
 
   generateUserResponse(user: UserEntity): IUserResponse {
-    if (!user.id) {
-      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-    }
     return {
       user: {
         ...user,
