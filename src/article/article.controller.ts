@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
   Post,
   UseGuards,
   UsePipes,
@@ -31,5 +33,12 @@ export class ArticleController {
     );
 
     return this.articleService.generateArticleResponse(newArticle);
+  }
+
+  @Get(':slug')
+  async getArticle(@Param('slug') slug: string) {
+    const article = await this.articleService.getSingleArticle(slug);
+
+    return this.articleService.generateArticleResponse(article);
   }
 }
