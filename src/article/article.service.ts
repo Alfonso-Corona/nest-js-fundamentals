@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { IArticleResponse } from './types/articleResponse.interface';
 import slugify from 'slugify';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
+import { DeleteResult } from 'typeorm/browser';
 
 @Injectable()
 export class ArticleService {
@@ -23,8 +24,6 @@ export class ArticleService {
 
     Object.assign(article, createArticleDto);
 
-    console.log(user);
-
     if (!article.tagList) {
       article.tagList = [];
     }
@@ -36,6 +35,28 @@ export class ArticleService {
   }
 
   async getSingleArticle(slug: string): Promise<ArticleEntity> {
+    const article = this.findBySlug(slug);
+
+    return article;
+  }
+
+  async deleteArticle(
+    slug: string,
+    currentUserId: number,
+  ): Promise<DeleteResult> {
+    const article = await this.findBySlug(slug);
+
+    if (article.author.id !== currentUserId) {
+      throw new HttpException(
+        'You are not allowe to delete this article',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return await this.articleRepository.delete({ slug });
+  }
+
+  async findBySlug(slug: string): Promise<ArticleEntity> {
     const article = await this.articleRepository.findOne({
       where: {
         slug,
