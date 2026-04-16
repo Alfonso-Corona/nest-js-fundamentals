@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -18,6 +19,7 @@ import { ArticleService } from './article.service';
 import { AuthGuard } from '../user/guards/auth.guard';
 import { IArticleResponse } from './types/articleResponse.interface';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
+import { IArticlesResponse } from './types/articlesResponse.interface';
 
 @Controller('articles')
 export class ArticleController {
@@ -68,5 +70,10 @@ export class ArticleController {
     );
 
     return this.articleService.generateArticleResponse(updatedArticle);
+  }
+
+  @Get()
+  async findAll(@Query() query: any): Promise<IArticlesResponse> {
+    return await this.articleService.finnAll(query);
   }
 }
