@@ -9,6 +9,7 @@ import slugify from 'slugify';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 import { DeleteResult } from 'typeorm/browser';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
+import { IArticlesResponse } from './types/articlesResponse.interface';
 
 @Injectable()
 export class ArticleService {
@@ -19,7 +20,7 @@ export class ArticleService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async finnAll(query: any): Promise<any> {
+  async finnAll(query: any): Promise<IArticlesResponse> {
     const queryBuilder = this.articleRepository
       .createQueryBuilder('articles')
       .leftJoinAndSelect('articles.author', 'author');
@@ -137,6 +138,40 @@ export class ArticleService {
     Object.assign(article, updateArticleDto);
 
     return await this.articleRepository.save(article);
+  }
+
+  async addToFavoriteArticle(
+    currentUserId: number,
+    slug: string,
+  ): Promise<IArticleResponse> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: currentUserId,
+      },
+      relations: ['favorites'],
+    });
+
+    if (!user) {
+      throw new HttpException(
+        `User with ID ${currentUserId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const curretnArticle = await this.findBySlug(slug);
+
+    const isNotFavorite = !user?.favorites.find(
+      (article) => article.slug === curretnArticle.slug,
+    );
+
+    if (isNotFavorite) {
+      curretnArticle.favoritesCount++;
+      user?.favorites.push(curretnArticle);
+      await this.articleRepository.save(curretnArticle);
+      await this.userRepository.save(user);
+    }
+
+    return this.generateArticleResponse(curretnArticle);
   }
 
   generateSlug(title: string): string {
