@@ -174,6 +174,40 @@ export class ArticleService {
     return this.generateArticleResponse(curretnArticle);
   }
 
+  async removeArticleFromFavorites(
+    currentUserId: number,
+    slug: string,
+  ): Promise<IArticleResponse> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: currentUserId,
+      },
+      relations: ['favorites'],
+    });
+
+    if (!user) {
+      throw new HttpException(
+        `User with ID ${currentUserId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const curretnArticle = await this.findBySlug(slug);
+
+    const articleIndex = user.favorites.findIndex(
+      (article) => article.slug === curretnArticle.slug,
+    );
+
+    if (articleIndex >= 0) {
+      curretnArticle.favoritesCount--;
+      user.favorites.splice(articleIndex, 1);
+      await this.articleRepository.save(curretnArticle);
+      await this.userRepository.save(user);
+    }
+
+    return this.generateArticleResponse(curretnArticle);
+  }
+
   generateSlug(title: string): string {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     return `${slugify(title, { lower: true })}-${id}`;
